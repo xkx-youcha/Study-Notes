@@ -7,6 +7,8 @@ import torchvision
 from torch.utils.data import DataLoader
 
 image_size = [1, 28, 28]
+batch_size = 64
+latent_dim = 96
 device = torch.cuda.is_available()
 
 # 生成器
@@ -52,7 +54,7 @@ class Discriminator(nn.Module):
             nn.Linear(64, 32),
             nn.ReLU(inplace=True),
             nn.Linear(32, 1),
-            nn.ReLU(inplace=True),
+            # nn.ReLU(inplace=True),
             nn.Sigmoid()
         )
 
@@ -72,9 +74,8 @@ dataset = torchvision.datasets.MNIST("../data", train=True, download=True,
 # print(len(dataset))     # 60000
 # print(dataset[0][0].shape)      # torch.Size([1, 28, 28])
 
-batch_size = 64
-latent_dim = 96
-dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
 # 实例化判别器和生成器
 generator = Generator()
@@ -82,8 +83,8 @@ discriminator = Discriminator()
 
 # 构造优化器
 # 需要两个优化器，分别对判别器和生成器进行优化
-g_optimizer = torch.optim.Adam(generator.parameters(), lr=0.003, betas=(0.4, 0.8), weight_decay=0.0001 )
-d_optimizer = torch.optim.Adam(discriminator.parameters(), lr=0.003, betas=(0.4, 0.8), weight_decay=0.0001)
+g_optimizer = torch.optim.Adam(generator.parameters(), lr=0.0003, betas=(0.4, 0.8), weight_decay=0.0001 )
+d_optimizer = torch.optim.Adam(discriminator.parameters(), lr=0.0003, betas=(0.4, 0.8), weight_decay=0.0001)
 
 # 损失函数，因为最后是进行二分类判别
 loss_fn = nn.BCELoss()
@@ -141,4 +142,4 @@ for epoch in range(epochs):
 
         if index % 400 == 0:
             image = pred_images[:16].data
-            torchvision.utils.save_image(image, f"./fake_image/image_{len(dataloader)*epoch+index}.png", nrow=4)
+            torchvision.utils.save_image(image, f"./image/image_{len(dataloader)*epoch+index}.png", nrow=4)
